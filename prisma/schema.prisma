@@ -8,9 +8,10 @@ datasource db {
 }
 
 model tree {
-  id          Int   @id @default(autoincrement())
-  parent      Int?  
-  data        Int
+  id            Int   @id @default(autoincrement())
+  parent        Int?  
+  data          Int
+  generation    Int
   predecessor   tree? @relation("ParentChild", fields: [parent], references: [id])
-  successors tree[] @relation("ParentChild")
+  successors    tree[] @relation("ParentChild")
 }

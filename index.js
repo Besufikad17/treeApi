@@ -1,7 +1,6 @@
 const express = require("express");
 const cors = require("cors");
 const { PrismaClient } = require("@prisma/client");
-const { warnEnvConflicts } = require("@prisma/client/runtime");
 
 const app = express();
 const prisma = new PrismaClient();
@@ -23,34 +22,33 @@ connectDB();
 app.use(cors());
 app.use(express.json());
 
-const getGeneration = async(id) => {
-  let generation = 1; 
-  while(true){
-    const user = await prisma.tree.findMany({
-      where: {
-        id
-      }
-    })
-    if(user[0].parent){
-      id = user[0].parent;
-      generation++;
-    }else{
-      break;
-    }
-  }
-  return generation;
-}
-
 app.post("/add", async(req, res) => {
   const { data, parent_id } = req.body;
   try {
-    const newData = await prisma.tree.create({
-      data: {
-        data: parseInt(data),
-        parent: parseInt(parent_id) || undefined
-      }
-    })
-    res.json(newData);
+    if(parent_id){
+      const parent = await prisma.tree.findMany({
+        where: {
+          id: parseInt(parent_id)
+        }
+      })
+
+      const newData = await prisma.tree.create({
+        data: {
+          data: parseInt(data),
+          parent: parseInt(parent_id),
+          generation: parent[0].generation + 1
+        }
+      })
+      res.json(newData);
+    }else{
+      const newData = await prisma.tree.create({
+        data: {
+          data: parseInt(data),
+          generation: 1,
+        }
+      })
+      res.json(newData);
+    }
   } catch (error) {
     console.log(error);
     return res.send(error);
