@@ -1,0 +1,16 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "mysql"
+  url      = env("DATABASE_URL")
+}
+
+model tree {
+  id          Int   @id @default(autoincrement())
+  parent      Int?  
+  data        Int
+  predecessor   tree? @relation("ParentChild", fields: [parent], references: [id])
+  successors tree[] @relation("ParentChild")
+}
